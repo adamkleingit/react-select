@@ -527,7 +527,7 @@ class Select extends React.Component {
 			});
 		} else {
 			this.setState({
-				isOpen: false,
+				isOpen: this.props.closeOnSelect ? false : this.state.isOpen,
 				inputValue: this.handleInputValueChange(''),
 				isPseudoFocused: this.state.isFocused,
 			}, () => {
@@ -571,7 +571,9 @@ class Select extends React.Component {
 		}
 		event.stopPropagation();
 		event.preventDefault();
-		this.setValue(this.getResetValue());
+		if (!this.props.clearOnlyInput) {
+			this.setValue(this.getResetValue());
+		}
 		this.setState({
 			isOpen: false,
 			inputValue: this.handleInputValueChange(''),
@@ -1057,9 +1059,11 @@ Select.propTypes = {
     backspaceToRemoveMessage: PropTypes.string,  // Message to use for screenreaders to press backspace to remove the current item - {label} is replaced with the item label
     className: PropTypes.string,          // className for the outer element
     clearAllText: stringOrNode,           // title for the "clear" control when multi: true
+	clearOnlyInput: PropTypes.bool,		  // if true, clear doesn't clear the value, but only the input value
     clearRenderer: PropTypes.func,        // create clearable x element
     clearValueText: stringOrNode,         // title for the "clear" control
     clearable: PropTypes.bool,            // should it be possible to reset value
+	closeOnSelect: PropTypes.bool,		  // whether to close menu after selecting an option
     deleteRemoves: PropTypes.bool,        // whether backspace removes an item if there is no text input
     delimiter: PropTypes.string,          // delimiter to use to join multiple values for the hidden field value
     disabled: PropTypes.bool,             // whether the Select is disabled or not
@@ -1129,8 +1133,10 @@ Select.defaultProps = {
     backspaceToRemoveMessage: 'Press backspace to remove {label}',
     clearable: true,
     clearAllText: 'Clear all',
+	clearOnlyInput: false,
     clearRenderer: defaultClearRenderer,
     clearValueText: 'Clear value',
+	closeOnSelect: true,
     deleteRemoves: true,
     delimiter: ',',
     disabled: false,
