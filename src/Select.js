@@ -116,9 +116,11 @@ class Select extends React.Component {
 	componentDidUpdate (prevProps, prevState) {
 		// focus to the selected option
 		if (this.menu && this.focused && this.state.isOpen && !this.hasScrolledToOption) {
-			let focusedOptionNode = ReactDOM.findDOMNode(this.focused);
-			let menuNode = ReactDOM.findDOMNode(this.menu);
-			menuNode.scrollTop = focusedOptionNode.offsetTop;
+			if (this.props.scrollOnOptionSelect) {
+				let focusedOptionNode = ReactDOM.findDOMNode(this.focused);
+				let menuNode = ReactDOM.findDOMNode(this.menu);
+				menuNode.scrollTop = focusedOptionNode.offsetTop;
+			}
 			this.hasScrolledToOption = true;
 		} else if (!this.state.isOpen) {
 			this.hasScrolledToOption = false;
@@ -518,9 +520,15 @@ class Select extends React.Component {
 	selectValue (value) {
 		//NOTE: update value in the callback to make sure the input value is empty so that there are no styling issues (Chrome had issue otherwise)
 		this.hasScrolledToOption = false;
+
+		// Clear input on select if noted so in props
+		const newInputValue = this.props.clearFilterOnSelect
+			? this.handleInputValueChange('')
+			: this.state.inputValue;
+
 		if (this.props.multi) {
 			this.setState({
-				inputValue: this.handleInputValueChange(''),
+				inputValue: newInputValue,
 				focusedIndex: null
 			}, () => {
 				this.addValue(value);
@@ -528,7 +536,7 @@ class Select extends React.Component {
 		} else {
 			this.setState({
 				isOpen: this.props.closeOnSelect ? false : this.state.isOpen,
-				inputValue: this.handleInputValueChange(''),
+				inputValue: newInputValue,
 				isPseudoFocused: this.state.isFocused,
 			}, () => {
 				this.setValue(value);
@@ -1059,11 +1067,12 @@ Select.propTypes = {
     backspaceToRemoveMessage: PropTypes.string,  // Message to use for screenreaders to press backspace to remove the current item - {label} is replaced with the item label
     className: PropTypes.string,          // className for the outer element
     clearAllText: stringOrNode,           // title for the "clear" control when multi: true
-	clearOnlyInput: PropTypes.bool,		  // if true, clear doesn't clear the value, but only the input value
+    clearFilterOnSelect: PropTypes.bool,  // if true, selecting a value clears the filter
+    clearOnlyInput: PropTypes.bool,		  // if true, clear doesn't clear the value, but only the input value
     clearRenderer: PropTypes.func,        // create clearable x element
     clearValueText: stringOrNode,         // title for the "clear" control
     clearable: PropTypes.bool,            // should it be possible to reset value
-	closeOnSelect: PropTypes.bool,		  // whether to close menu after selecting an option
+    closeOnSelect: PropTypes.bool,		  // whether to close menu after selecting an option
     deleteRemoves: PropTypes.bool,        // whether backspace removes an item if there is no text input
     delimiter: PropTypes.string,          // delimiter to use to join multiple values for the hidden field value
     disabled: PropTypes.bool,             // whether the Select is disabled or not
@@ -1109,6 +1118,7 @@ Select.propTypes = {
     required: PropTypes.bool,             // applies HTML5 required attribute when needed
     resetValue: PropTypes.any,            // value to use when you clear the control
     scrollMenuIntoView: PropTypes.bool,   // boolean to enable the viewport to shift so that the full menu fully visible when engaged
+    scrollOnOptionSelect: PropTypes.bool,// boolean to scroll the menu automatically on open to the currently focused / selected option
     searchable: PropTypes.bool,           // whether to enable searching feature or not
     simpleValue: PropTypes.bool,          // pass the value to onChange as a simple value (legacy pre 1.0 mode), defaults to false
     style: PropTypes.object,              // optional style to apply to the control
@@ -1133,10 +1143,11 @@ Select.defaultProps = {
     backspaceToRemoveMessage: 'Press backspace to remove {label}',
     clearable: true,
     clearAllText: 'Clear all',
-	clearOnlyInput: false,
+    clearFilterOnSelect: true,
+    clearOnlyInput: false,
     clearRenderer: defaultClearRenderer,
     clearValueText: 'Clear value',
-	closeOnSelect: true,
+    closeOnSelect: true,
     deleteRemoves: true,
     delimiter: ',',
     disabled: false,
@@ -1161,6 +1172,7 @@ Select.defaultProps = {
     placeholder: 'Select...',
     required: false,
     scrollMenuIntoView: true,
+    scrollOnOptionSelect: true,
     searchable: true,
     simpleValue: false,
     tabSelectsValue: true,
